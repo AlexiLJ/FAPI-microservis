@@ -1,6 +1,6 @@
 from fastapi import responses
 from fastapi.testclient import TestClient
-from app.main import app 
+from app.main import app
 
 client = TestClient(app)
 
@@ -13,4 +13,4 @@ def test_post_home():
     response = client.post("/") #request.post
     assert response.status_code == 200
     assert "application/json" in response.headers['content-type']
-    assert response.json( ) == {"mamat": "kunem"}  
+    assert response.json( ) == {"mamat": "kunem"}

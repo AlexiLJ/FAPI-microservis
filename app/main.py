@@ -6,6 +6,7 @@ from functools import lru_cache
 from fastapi import (
     FastAPI,
     Depends,
+    HTTPException,
     Request,
     File,
     UploadFile
@@ -16,7 +17,7 @@ from pydantic import BaseSettings
 
 class Settings(BaseSettings):
     debug: bool = False
-
+    echo_active: bool = False
     class Config:
         env_file = ".env"
 
@@ -35,8 +36,7 @@ print((BASE_DIR/"templates").exists())
 app = FastAPI()
 
 @app.get("/", response_class=HTMLResponse)
-def home_view(request: Request):
-    print(request)
+def home_view(request: Request, settings: Settings = Depends(get_settings)):
     return templates.TemplateResponse("home.html", {"request": request})
 
 @app.post("/")
@@ -44,7 +44,9 @@ def home_detail_view():
     return {"mamat": "kunem"}
 
 @app.post("/img-echo/", response_class=FileResponse)
-async def img_echo_view(file:UploadFile=File(...)):
+async def img_echo_view(file:UploadFile=File(...),  settings: Settings = Depends(get_settings)):
+    if not settings.echo_active:
+        raise HTTPException(detail="Invalid endpoint", status_code=400)
     bytes_str = io.BytesIO(await file.read())
     fname = pathlib.Path(file.filename)
     fext = fname.suffix
